@@ -1,0 +1,5 @@
+tensorflow-macos
+numpy
+matplotlib
+imageio
+imageio-ffmpeg
