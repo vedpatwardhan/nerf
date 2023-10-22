@@ -463,8 +463,8 @@ def config_parser():
     import configargparse
     parser = configargparse.ArgumentParser()
     parser.add_argument('--config', is_config_file=True,
-                        help='config file path')
-    parser.add_argument("--expname", type=str, help='experiment name')
+                        help='config file path', default='config_fern.txt')
+    parser.add_argument("--expname", type=str, help='experiment name', default='fern_test')
     parser.add_argument("--basedir", type=str, default='./logs/',
                         help='where to store ckpts and logs')
     parser.add_argument("--datadir", type=str,
