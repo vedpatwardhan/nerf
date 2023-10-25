@@ -95,12 +95,12 @@ def init_nerf_model(D=8, W=256, input_ch=3, input_ch_views=3, output_ch=4, skips
     print(inputs.shape, inputs_pts.shape, inputs_views.shape)
     outputs = inputs_pts
     for i in range(D):
-        outputs = dense(W)(outputs)
+        outputs = dense(W)(outputs) # rgb
         if i in skips:
             outputs = tf.concat([inputs_pts, outputs], -1)
 
     if use_viewdirs:
-        alpha_out = dense(1, act=None)(outputs)
+        alpha_out = dense(1, act=None)(outputs) # volume density
         bottleneck = dense(256, act=None)(outputs)
         inputs_viewdirs = tf.concat(
             [bottleneck, inputs_views], -1)  # concat viewdirs
@@ -132,11 +132,11 @@ def get_rays(H, W, focal, c2w):
 
 def get_rays_np(H, W, focal, c2w):
     """Get ray origins, directions from a pinhole camera."""
-    i, j = np.meshgrid(np.arange(W, dtype=np.float32),
+    i, j = np.meshgrid(np.arange(W, dtype=np.float32),  # get all coordinates
                        np.arange(H, dtype=np.float32), indexing='xy')
     dirs = np.stack([(i-W*.5)/focal, -(j-H*.5)/focal, -np.ones_like(i)], -1)
-    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
-    rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d))
+    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1) # rays for each pixel
+    rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d)) # origin is the same
     return rays_o, rays_d
 
 

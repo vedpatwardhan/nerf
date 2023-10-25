@@ -387,7 +387,7 @@ def create_nerf(args):
             args.multires_views, args.i_embed)
     output_ch = 4
     skips = [4]
-    model = init_nerf_model(
+    model = init_nerf_model(    # coarse model
         D=args.netdepth, W=args.netwidth,
         input_ch=input_ch, output_ch=output_ch, skips=skips,
         input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs)
@@ -395,7 +395,7 @@ def create_nerf(args):
     models = {'model': model}
 
     model_fine = None
-    if args.N_importance > 0:
+    if args.N_importance > 0:   # number of fine samples N_f
         model_fine = init_nerf_model(
             D=args.netdepth_fine, W=args.netwidth_fine,
             input_ch=input_ch, output_ch=output_ch, skips=skips,
@@ -588,12 +588,12 @@ def train():
         images, poses, bds, render_poses, i_test = load_llff_data(args.datadir, args.factor,
                                                                   recenter=True, bd_factor=.75,
                                                                   spherify=args.spherify)
-        hwf = poses[0, :3, -1]
+        hwf = poses[0, :3, -1] # same as poses[1, :3, -1], these are camera intrinsics
         poses = poses[:, :3, :4]
-        print('Loaded llff', images.shape,
-              render_poses.shape, hwf, args.datadir)
+        print('Loaded llff', images.shape, # render_poses involves the spirals of light fields in 2 rotations
+              render_poses.shape, hwf, args.datadir) # there's 120 such poses rendered
         if not isinstance(i_test, list):
-            i_test = [i_test]
+            i_test = [i_test]   # ids of the test images
 
         if args.llffhold > 0:
             print('Auto LLFF holdout,', args.llffhold)
@@ -601,9 +601,10 @@ def train():
 
         i_val = i_test
         i_train = np.array([i for i in np.arange(int(images.shape[0])) if
-                            (i not in i_test and i not in i_val)])
+                            (i not in i_test and i not in i_val)]) # picking train ids
 
         print('DEFINING BOUNDS')
+        # ndc --> normalized device coordinates (screen independent display coordinate system)
         if args.no_ndc:
             near = tf.reduce_min(bds) * .9
             far = tf.reduce_max(bds) * 1.

@@ -62,12 +62,12 @@ def _minify(basedir, factors=[], resolutions=[]):
 def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
     
     poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
-    poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0])
-    bds = poses_arr[:, -2:].transpose([1,0])
+    poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0]) # first 15 are rays
+    bds = poses_arr[:, -2:].transpose([1,0])    # last 2 are bounds
     
     img0 = [os.path.join(basedir, 'images', f) for f in sorted(os.listdir(os.path.join(basedir, 'images'))) \
             if f.endswith('JPG') or f.endswith('jpg') or f.endswith('png')][0]
-    sh = imageio.imread(img0).shape
+    sh = imageio.imread(img0).shape # all images assumed to share same resolution
     
     sfx = ''
     
@@ -99,8 +99,8 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
         return
     
     sh = imageio.imread(imgfiles[0]).shape
-    poses[:2, 4, :] = np.array(sh[:2]).reshape([2, 1])
-    poses[2, 4, :] = poses[2, 4, :] * 1./factor
+    poses[:2, 4, :] = np.array(sh[:2]).reshape([2, 1])  # first 2 are height and width
+    poses[2, 4, :] = poses[2, 4, :] * 1./factor  # third is z coordinate
     
     if not load_imgs:
         return poses, bds
@@ -135,7 +135,7 @@ def ptstocam(pts, c2w):
     return tt
 
 def poses_avg(poses):
-
+    # last dim --> (_, up, ray_vector, center, camera_instrinsics)
     hwf = poses[0, :3, -1:]
 
     center = poses[:, :3, 3].mean(0)
@@ -293,7 +293,7 @@ def load_llff_data(basedir, factor=8, recenter=True, bd_factor=.75, spherify=Fal
             N_rots = 1
             N_views/=2
 
-        # Generate poses for spiral path
+        # Generate poses for spiral path (rendering local light fields as smooth spirals)
         render_poses = render_path_spiral(c2w_path, up, rads, focal, zdelta, zrate=.5, rots=N_rots, N=N_views)
         
         
