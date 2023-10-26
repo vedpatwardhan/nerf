@@ -585,6 +585,7 @@ def train():
     # Load data
     # LLFF --> Local Light Field Fusion
     if args.dataset_type == 'llff':
+        # poses are input poses and render_poses are output poses
         images, poses, bds, render_poses, i_test = load_llff_data(args.datadir, args.factor,
                                                                   recenter=True, bd_factor=.75,
                                                                   spherify=args.spherify)
